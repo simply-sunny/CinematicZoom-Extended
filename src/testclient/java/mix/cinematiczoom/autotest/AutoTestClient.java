@@ -1,0 +1,958 @@
+package mix.cinematiczoom.autotest;
+
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.function.Consumer;
+
+/**
+ * Test-only client entrypoint. It is compiled and registered only when Gradle is run with
+ * {@code -PtestClient}; release jars never contain this class or entrypoint.
+ *
+ * <p>The helper loads a demo world, forces the cinematic zoom key down, saves a normal and a
+ * zoomed screenshot through the game's own screenshot code, writes {@code autotest/status.txt},
+ * and stops the client. All game classes are accessed reflectively so one source file works
+ * across every supported Minecraft version.</p>
+ */
+public final class AutoTestClient implements ClientModInitializer {
+    private static final String TARGET = System.getProperty("cinematiczoom.test.target", "unknown");
+    private static final int WORLD_TIMEOUT_TICKS = 20 * 180;
+    private static final int PHASE_TIMEOUT_TICKS = 20 * 12;
+    private static final int WARMUP_TICKS = 200;
+    private static final int ZOOM_WAIT_TICKS = 70;
+    private static final int STOP_DELAY_TICKS = 30;
+    private static final boolean BOOTSTRAP = Boolean.getBoolean("cinematiczoom.test.bootstrap");
+
+    private enum Phase {
+        WAIT_WORLD,
+        WARMUP,
+        WAIT_NORMAL,
+        PRESS_ZOOM,
+        WAIT_ZOOM,
+        WAIT_ZOOMED,
+        DONE,
+        ERROR
+    }
+
+    private final File runDirectory = new File(System.getProperty("user.dir"));
+    private final File outputDirectory = new File(runDirectory, "autotest");
+    private final File normalFile = new File(new File(runDirectory, "screenshots"), TARGET + "-normal.png");
+    private final File zoomedFile = new File(new File(runDirectory, "screenshots"), TARGET + "-zoomed.png");
+
+    private Phase phase = Phase.WAIT_WORLD;
+    private int ticks;
+    private boolean rotated;
+    private volatile boolean normalShotDone;
+    private volatile boolean zoomShotDone;
+
+    @Override
+    public void onInitializeClient() {
+        outputDirectory.mkdirs();
+        normalFile.delete();
+        zoomedFile.delete();
+        new File(outputDirectory, "status.txt").delete();
+        log("starting automation for " + TARGET);
+        ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+    }
+
+    private void tick(Object client) {
+        try {
+            if (BOOTSTRAP) {
+                bootstrapTick(client);
+                return;
+            }
+            switch (phase) {
+                case WAIT_WORLD -> waitForWorld(client);
+                case WARMUP -> warmup(client);
+                case WAIT_NORMAL -> waitForNormal(client);
+                case PRESS_ZOOM -> pressZoom(client);
+                case WAIT_ZOOM -> waitForZoom(client);
+                case WAIT_ZOOMED -> waitForZoomed(client);
+                case DONE -> stopAfterDelay(client);
+                case ERROR -> stopAfterError(client);
+            }
+        } catch (Throwable t) {
+            fail("exception: " + t);
+        }
+    }
+
+    private void bootstrapTick(Object client) {
+        if (phase == Phase.DONE) {
+            stopAfterDelay(client);
+            return;
+        }
+        if (phase == Phase.ERROR) {
+            stopAfterError(client);
+            return;
+        }
+        if (++ticks > WORLD_TIMEOUT_TICKS) {
+            fail("bootstrap world did not load within " + (WORLD_TIMEOUT_TICKS / 20) + "s");
+            return;
+        }
+        Object world = getQuietly(client, "world", "level");
+        Object player = getQuietly(client, "player");
+        if (world != null && player != null) {
+            writeStatus("ok\nbootstrap=true\n");
+            log("bootstrap world ready");
+            phase = Phase.DONE;
+            ticks = 0;
+            return;
+        }
+        if (ticks % 20 == 0) {
+            pressTitleButton(client, "Play Demo World", "Continue");
+        }
+    }
+
+    private void waitForWorld(Object client) throws Exception {
+        if (++ticks > WORLD_TIMEOUT_TICKS) {
+            fail("world did not load within " + (WORLD_TIMEOUT_TICKS / 20) + "s");
+            return;
+        }
+        Object world = get(client, "world", "level");
+        Object player = get(client, "player");
+        Object screen = currentScreen(client);
+        if (world != null && player != null) {
+            if (screen != null) {
+                log("dismissing screen " + screen.getClass().getSimpleName());
+                if (!pressScreenButton(screen, "Continue", "OK", "Yes", "Proceed", "Got it", "Back")) {
+                    closeScreen(screen);
+                }
+                return;
+            }
+            prepareScene(client);
+            phase = Phase.WARMUP;
+            ticks = 0;
+            log("world loaded");
+            return;
+        }
+        if (ticks % 40 == 0) {
+            log("waiting for world: screen=" + (screen == null ? "null" : screen.getClass().getName())
+                    + " world=" + (world != null) + " player=" + (player != null));
+        }
+        if (world == null && ticks % 20 == 0) {
+            pressTitleButton(client, "Play Demo World", "Continue");
+        }
+    }
+
+    private void prepareScene(Object client) {
+        try {
+            disableDemo(client);
+            disableTutorial(client);
+            Object server = call(client, "getSingleplayerServer", "getServer");
+            if (server == null) {
+                log("no integrated server; leaving the world as generated");
+                return;
+            }
+            Object commands = call(server, "getCommandManager", "getCommands");
+            Object source = call(server, "getCommandSource", "createCommandSourceStack");
+            if (commands == null || source == null) {
+                log("no server command handler; leaving the world as generated");
+                return;
+            }
+            String[] setup = {
+                    "gamerule sendCommandFeedback false",
+                    "gamerule doDaylightCycle false",
+                    "gamerule doWeatherCycle false",
+                    "gamerule doMobSpawning false",
+                    "difficulty peaceful",
+                    "time set noon",
+                    "weather clear",
+                    "gamemode creative @p",
+                    "tp @p 0.5 120 5.5 180 0",
+                    "forceload add -24 -44 24 12"
+            };
+            for (String command : setup) {
+                executeCommand(commands, source, command);
+            }
+            log("scene ready");
+        } catch (Throwable t) {
+            log("scene setup skipped: " + t);
+        }
+    }
+
+    private void buildSceneFills(Object client) {
+        try {
+            Object server = call(client, "getSingleplayerServer", "getServer");
+            if (server == null) {
+                return;
+            }
+            Object commands = call(server, "getCommandManager", "getCommands");
+            Object source = call(server, "getCommandSource", "createCommandSourceStack");
+            if (commands == null || source == null) {
+                return;
+            }
+            String[] fills = {
+                    "fill -24 119 -44 24 119 12 minecraft:stone",
+                    "fill -24 120 -44 24 132 -44 minecraft:white_concrete",
+                    "fill -24 120 -44 -24 132 -44 minecraft:white_concrete",
+                    "fill 24 120 -44 24 132 -44 minecraft:white_concrete",
+                    "fill -24 132 -44 24 132 -44 minecraft:white_concrete",
+                    "fill -16 120 -32 -16 128 -32 minecraft:red_concrete",
+                    "fill 0 120 -32 0 128 -32 minecraft:lime_concrete",
+                    "fill 16 120 -32 16 128 -32 minecraft:blue_concrete",
+                    "fill -8 120 -20 -8 124 -20 minecraft:yellow_concrete",
+                    "fill 8 120 -20 8 124 -20 minecraft:cyan_concrete"
+            };
+            for (String command : fills) {
+                executeCommand(commands, source, command);
+            }
+            log("scene blocks placed");
+        } catch (Throwable t) {
+            log("scene fill skipped: " + t);
+        }
+    }
+
+    private void disableTutorial(Object client) {
+        try {
+            Object manager = call(client, "getTutorialManager", "getTutorial");
+            if (manager != null) {
+                for (Method method : manager.getClass().getMethods()) {
+                    if (!method.getName().equals("setStep") || method.getParameterCount() != 1) {
+                        continue;
+                    }
+                    Class<?> stepType = method.getParameterTypes()[0];
+                    if (!stepType.isEnum()) {
+                        continue;
+                    }
+                    for (Object value : stepType.getEnumConstants()) {
+                        if (((Enum<?>) value).name().equals("NONE")) {
+                            method.invoke(manager, value);
+                            log("tutorial disabled");
+                            break;
+                        }
+                    }
+                }
+            }
+            Object toasts = call(client, "getToastManager");
+            if (toasts != null) {
+                call(toasts, "clear");
+            }
+        } catch (Throwable t) {
+            log("could not disable tutorial: " + t);
+        }
+    }
+
+    private void clearToasts(Object client) {
+        try {
+            Object toasts = call(client, "getToastManager");
+            if (toasts != null) {
+                call(toasts, "clear");
+            }
+        } catch (Throwable ignored) {
+            // toasts are cosmetic
+        }
+    }
+
+    private void disableDemo(Object client) {
+        try {
+            Field demo = findField(client.getClass(), "demo");
+            if (demo != null && demo.getType() == boolean.class) {
+                demo.setAccessible(true);
+                demo.setBoolean(client, false);
+                log("demo mode disabled");
+            }
+        } catch (Throwable t) {
+            log("could not disable demo mode: " + t);
+        }
+    }
+
+    private static void executeCommand(Object handler, Object source, String command) {
+        for (Method method : handler.getClass().getMethods()) {
+            String name = method.getName();
+            if (!name.equals("executeWithPrefix") && !name.equals("performPrefixedCommand") && !name.equals("parseAndExecute") && !name.equals("execute")) {
+                continue;
+            }
+            Class<?>[] parameters = method.getParameterTypes();
+            if (parameters.length != 2 || parameters[1] != String.class || !parameters[0].isInstance(source)) {
+                continue;
+            }
+            try {
+                method.invoke(handler, source, command);
+                return;
+            } catch (ReflectiveOperationException ignored) {
+                // try the next matching command method
+            }
+        }
+        log("command not executed: " + command);
+    }
+
+    private void warmup(Object client) throws Exception {
+        focus(client);
+        if (ticks == 1 || ticks % 40 == 0) {
+            log("input: active=" + callStatic("mix.cinematiczoom.ZoomManager", "isZoomActive")
+                    + " hideHud=" + callStatic("mix.cinematiczoom.ZoomManager", "shouldHideHud")
+                    + " keyPressed=" + zoomKeyPressed()
+                    + " rawC=" + rawKeyDown(client, 67)
+                    + " focused=" + call(client, "isWindowFocused"));
+        }
+        if (++ticks > WARMUP_TICKS + PHASE_TIMEOUT_TICKS) {
+            fail("scene or input did not settle");
+            return;
+        }
+        Object screen = currentScreen(client);
+        if (screen != null) {
+            String name = screen.getClass().getSimpleName();
+            if (!name.contains("Loading") && !name.contains("Receiving") && !name.contains("Downloading")) {
+                log("dismissing in-game screen " + name);
+                if (!pressScreenButton(screen, "Continue Playing", "Continue", "Back to Game", "OK", "Yes", "Proceed", "Got it", "Back")) {
+                    closeScreen(screen);
+                }
+            }
+            return;
+        }
+        if (ticks % 20 == 0) {
+            preparePlayer(client);
+        }
+        if (ticks == 20) {
+            buildSceneFills(client);
+        }
+        if (ticks % 10 == 0) {
+            clearToasts(client);
+        }
+        if (!rotated) {
+            rotated = true;
+            LevelView.faceForward(get(client, "player"));
+        }
+        if (ticks >= WARMUP_TICKS) {
+            if ((!sceneSettled(client) || !normalReady(client)) && ticks < WARMUP_TICKS + PHASE_TIMEOUT_TICKS) {
+                if (ticks % 40 == 0) {
+                    log("waiting for a clean normal frame: " + LevelView.describe(get(client, "player")));
+                }
+                return;
+            }
+            if (!sceneSettled(client) || !normalReady(client)) {
+                log("scene or input did not settle; capturing anyway");
+            }
+            takeScreenshot(client, "normal");
+            phase = Phase.WAIT_NORMAL;
+            ticks = 0;
+        }
+    }
+
+    private void preparePlayer(Object client) {
+        try {
+            Object server = call(client, "getSingleplayerServer", "getServer");
+            if (server == null) {
+                return;
+            }
+            Object commands = call(server, "getCommandManager", "getCommands");
+            Object source = call(server, "getCommandSource", "createCommandSourceStack");
+            if (commands == null || source == null) {
+                return;
+            }
+            executeCommand(commands, source, "gamemode creative @p");
+            executeCommand(commands, source, "tp @p 0.5 120 5.5 180 0");
+        } catch (Throwable t) {
+            log("player setup skipped: " + t);
+        }
+    }
+
+    private static boolean normalReady(Object client) throws Exception {
+        Object active = callStatic("mix.cinematiczoom.ZoomManager", "isZoomActive");
+        Object pressed = zoomKeyPressed();
+        Object raw = rawKeyDown(client, 67);
+        return !Boolean.TRUE.equals(active)
+                && !Boolean.TRUE.equals(pressed)
+                && !Integer.valueOf(1).equals(raw);
+    }
+
+    private static boolean sceneSettled(Object client) throws Exception {
+        Object player = get(client, "player");
+        if (player == null) {
+            return false;
+        }
+        Object x = call(player, "getX");
+        Object y = call(player, "getY");
+        Object z = call(player, "getZ");
+        if (!(x instanceof Number) || !(y instanceof Number) || !(z instanceof Number)) {
+            return true;
+        }
+        boolean inPlace = Math.abs(((Number) x).doubleValue() - 0.5) < 2.0
+                && Math.abs(((Number) y).doubleValue() - 120.0) < 3.0
+                && Math.abs(((Number) z).doubleValue() - 5.5) < 2.0;
+        Object ground = call(player, "isOnGround", "onGround");
+        boolean grounded = !(ground instanceof Boolean) || (Boolean) ground;
+        return inPlace && grounded;
+    }
+
+    private void waitForNormal(Object client) {
+        if (normalShotDone || normalFile.isFile() || ++ticks > PHASE_TIMEOUT_TICKS) {
+            if (!normalFile.isFile() && !normalShotDone) {
+                fail("normal screenshot was not written");
+                return;
+            }
+            phase = Phase.PRESS_ZOOM;
+            ticks = 0;
+        }
+    }
+
+    private void pressZoom(Object client) throws Exception {
+        focus(client);
+        setZoomKeyDown(true);
+        phase = Phase.WAIT_ZOOM;
+        ticks = 0;
+        log("zoom key held: pressed=" + zoomKeyPressed()
+                + " active=" + callStatic("mix.cinematiczoom.ZoomManager", "isZoomActive"));
+    }
+
+    private void waitForZoom(Object client) throws Exception {
+        focus(client);
+        setZoomKeyDown(true);
+        if (++ticks >= ZOOM_WAIT_TICKS) {
+            takeScreenshot(client, "zoomed");
+            phase = Phase.WAIT_ZOOMED;
+            ticks = 0;
+        }
+    }
+
+    private void waitForZoomed(Object client) throws Exception {
+        setZoomKeyDown(true);
+        if (zoomShotDone || zoomedFile.isFile() || ++ticks > PHASE_TIMEOUT_TICKS) {
+            setZoomKeyDown(false);
+            if (!zoomedFile.isFile()) {
+                fail("zoomed screenshot was not written");
+                return;
+            }
+            writeStatus("ok\nnormal=" + normalFile.getAbsolutePath() + "\nzoomed=" + zoomedFile.getAbsolutePath() + "\n");
+            log("done: " + zoomedFile.getAbsolutePath());
+            phase = Phase.DONE;
+            ticks = 0;
+        }
+    }
+
+    private void stopAfterDelay(Object client) {
+        if (++ticks >= STOP_DELAY_TICKS) {
+            stop(client);
+        }
+    }
+
+    private void stopAfterError(Object client) {
+        if (++ticks >= STOP_DELAY_TICKS) {
+            stop(client);
+        }
+    }
+
+    private void takeScreenshot(Object client, String kind) throws Exception {
+        clearToasts(client);
+        log("state: zoomActive=" + callStatic("mix.cinematiczoom.ZoomManager", "isZoomActive")
+                + " hideHud=" + callStatic("mix.cinematiczoom.ZoomManager", "shouldHideHud")
+                + " mode=" + get(client, "currentScreen", "screen"));
+        Object target = renderTarget(client);
+        if (target == null) {
+            throw new IllegalStateException("no render target");
+        }
+        Class<?> screenshotClass = screenshotClass();
+        Method method = screenshotMethod(screenshotClass, target);
+        if (method == null) {
+            throw new IllegalStateException("no screenshot method on " + screenshotClass.getName());
+        }
+        String name = TARGET + "-" + kind + ".png";
+        Consumer<Object> consumer = message -> {
+            if ("normal".equals(kind)) {
+                normalShotDone = true;
+            } else {
+                zoomShotDone = true;
+            }
+            log(kind + " screenshot callback: " + message);
+        };
+        Object[] args = method.getParameterCount() == 5
+                ? new Object[]{runDirectory, name, target, 1, consumer}
+                : new Object[]{runDirectory, name, target, consumer};
+        method.invoke(null, args);
+        log("requested " + kind + " screenshot");
+    }
+
+    private static Class<?> screenshotClass() throws ClassNotFoundException {
+        try {
+            return Class.forName("net.minecraft.client.Screenshot");
+        } catch (ClassNotFoundException ignored) {
+            return Class.forName("net.minecraft.client.util.ScreenshotRecorder");
+        }
+    }
+
+    private static Method screenshotMethod(Class<?> type, Object target) {
+        Method fallback = null;
+        for (Method method : type.getMethods()) {
+            if (!Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+            if (!method.getName().equals("saveScreenshot") && !method.getName().equals("grab")) {
+                continue;
+            }
+            Class<?>[] parameters = method.getParameterTypes();
+            if (parameters.length < 4 || parameters[0] != File.class || parameters[1] != String.class) {
+                continue;
+            }
+            if (!Consumer.class.isAssignableFrom(parameters[parameters.length - 1])) {
+                continue;
+            }
+            if (!parameters[2].isInstance(target)) {
+                continue;
+            }
+            if (parameters.length == 5 && parameters[3] == int.class) {
+                return method;
+            }
+            if (parameters.length == 4) {
+                fallback = method;
+            }
+        }
+        return fallback;
+    }
+
+    private static Object renderTarget(Object client) throws Exception {
+        Object target = call(client, "getFramebuffer", "getMainRenderTarget");
+        if (target != null) {
+            return target;
+        }
+        Object renderer = get(client, "gameRenderer");
+        if (renderer == null) {
+            renderer = call(client, "getGameRenderer");
+        }
+        if (renderer != null) {
+            target = call(renderer, "mainRenderTarget", "getMainRenderTarget", "getFramebuffer");
+        }
+        return target;
+    }
+
+    private static void focus(Object client) throws Exception {
+        Object window = call(client, "getWindow");
+        if (window == null) {
+            return;
+        }
+        Object handle = call(window, "handle", "getHandle");
+        if (handle instanceof Number number) {
+            try {
+                Class<?> glfw = Class.forName("org.lwjgl.glfw.GLFW");
+                Method focus = glfw.getMethod("glfwFocusWindow", long.class);
+                focus.invoke(null, number.longValue());
+            } catch (Throwable ignored) {
+                // 26.x uses SDL instead of GLFW
+            }
+        }
+        Field focused = findField(window.getClass(), "focused");
+        if (focused != null && focused.getType() == boolean.class) {
+            focused.setBoolean(window, true);
+        }
+    }
+
+    private static void setZoomKeyDown(boolean down) throws Exception {
+        Class<?> clientClass = Class.forName("mix.cinematiczoom.CinematicZoomClient");
+        Field keyField = clientClass.getField("ZOOM_KEYBIND");
+        Object key = keyField.get(null);
+        if (key == null) {
+            return;
+        }
+        Method setter = findMethod(key.getClass(), "setPressed", boolean.class);
+        if (setter == null) {
+            setter = findMethod(key.getClass(), "setDown", boolean.class);
+        }
+        if (setter != null) {
+            setter.invoke(key, down);
+            return;
+        }
+        Field pressed = findField(key.getClass(), "pressed", "isDown");
+        if (pressed != null) {
+            pressed.setBoolean(key, down);
+        }
+    }
+
+    private static Object zoomKeyPressed() {
+        try {
+            Class<?> clientClass = Class.forName("mix.cinematiczoom.CinematicZoomClient");
+            Object key = clientClass.getField("ZOOM_KEYBIND").get(null);
+            return key == null ? null : call(key, "isPressed", "isDown");
+        } catch (Throwable t) {
+            return "error:" + t.getClass().getSimpleName();
+        }
+    }
+
+    private static Object rawKeyDown(Object client, int keyCode) {
+        try {
+            Object window = call(client, "getWindow");
+            Object handle = call(window, "getHandle");
+            if (!(handle instanceof Number number)) {
+                return "no-handle";
+            }
+            Class<?> glfw = Class.forName("org.lwjgl.glfw.GLFW");
+            Method getKey = glfw.getMethod("glfwGetKey", long.class, int.class);
+            return getKey.invoke(null, number.longValue(), keyCode);
+        } catch (Throwable t) {
+            return "error:" + t.getClass().getSimpleName();
+        }
+    }
+
+    private static Object currentScreen(Object client) {
+        try {
+            Object gui = getQuietly(client, "gui");
+            Object screen = call(gui, "screen");
+            if (screen != null) {
+                return screen;
+            }
+        } catch (Throwable ignored) {
+            // fall through to the field used by older versions
+        }
+        return getQuietly(client, "currentScreen", "screen");
+    }
+
+    private static boolean demoStarted;
+
+    private static boolean pressTitleButton(Object client, String... labels) {
+        try {
+            Object screen = currentScreen(client);
+            if (screen == null) {
+                return false;
+            }
+            if (!demoStarted && screen.getClass().getSimpleName().equals("TitleScreen")) {
+                try {
+                    Method method = screen.getClass().getDeclaredMethod("confirmDemo", boolean.class);
+                    method.setAccessible(true);
+                    method.invoke(screen, false);
+                    demoStarted = true;
+                    log("started the demo world");
+                    return true;
+                } catch (NoSuchMethodException ignored) {
+                    // fall through to the button list
+                }
+            }
+            return pressScreenButton(screen, labels);
+        } catch (Throwable t) {
+            log("could not press title button: " + t);
+        }
+        return false;
+    }
+
+    private static boolean pressScreenButton(Object screen, String... labels) {
+        try {
+            Object children = call(screen, "children");
+            if (!(children instanceof Iterable<?>)) {
+                children = getQuietly(screen, "children");
+            }
+            if (!(children instanceof Iterable<?> iterable)) {
+                return false;
+            }
+            for (Object child : iterable) {
+                Object active = getQuietly(child, "active");
+                if (Boolean.FALSE.equals(active)) {
+                    continue;
+                }
+                String label = buttonLabel(child);
+                if (label == null) {
+                    continue;
+                }
+                String lower = label.toLowerCase();
+                boolean matches = false;
+                for (String wanted : labels) {
+                    if (lower.contains(wanted.toLowerCase())) {
+                        matches = true;
+                        break;
+                    }
+                }
+                if (!matches) {
+                    continue;
+                }
+                for (Method method : child.getClass().getMethods()) {
+                    if (!method.getName().equals("onPress")) {
+                        continue;
+                    }
+                    Class<?>[] parameters = method.getParameterTypes();
+                    if (parameters.length == 0) {
+                        method.invoke(child);
+                        log("pressed screen button: " + label);
+                        return true;
+                    }
+                    if (parameters.length == 1) {
+                        Object input = null;
+                        try {
+                            input = Class.forName("net.minecraft.client.input.KeyEvent")
+                                    .getConstructor(int.class, int.class, int.class)
+                                    .newInstance(257, 0, 0);
+                        } catch (Throwable ignored) {
+                            // the handler may not use the input at all
+                        }
+                        method.invoke(child, input);
+                        log("pressed screen button: " + label);
+                        return true;
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            log("could not press screen button: " + t);
+        }
+        return false;
+    }
+
+    private static void closeScreen(Object screen) {
+        try {
+            for (String name : new String[]{"onClose", "close"}) {
+                Method method = findMethod(screen.getClass(), name);
+                if (method != null && method.getParameterCount() == 0) {
+                    method.invoke(screen);
+                    log("closed screen " + screen.getClass().getSimpleName());
+                    return;
+                }
+            }
+        } catch (Throwable t) {
+            log("could not close screen: " + t);
+        }
+    }
+
+    private static String buttonLabel(Object child) {
+        Object message = null;
+        try {
+            message = call(child, "getMessage", "message");
+            if (message == null) {
+                message = getQuietly(child, "message");
+            }
+            if (message != null) {
+                Object text = call(message, "getString", "asString");
+                if (text != null) {
+                    return text.toString();
+                }
+                String component = componentString(message);
+                if (component != null) {
+                    return component;
+                }
+            }
+        } catch (Throwable ignored) {
+            // fall back to the component's toString
+        }
+        return message == null ? null : message.toString();
+    }
+
+    private static String componentString(Object message) {
+        for (String type : new String[]{
+                "net.minecraft.network.chat.Component",
+                "net.minecraft.text.Text",
+                "net.minecraft.network.chat.MutableComponent",
+                "net.minecraft.text.MutableText"
+        }) {
+            try {
+                Method method = Class.forName(type).getMethod("getString");
+                Object value = method.invoke(message);
+                if (value != null) {
+                    return value.toString();
+                }
+            } catch (Throwable ignored) {
+                // try the next component interface
+            }
+        }
+        return null;
+    }
+
+    private static void pressEnter(Object client) {
+        try {
+            Object keyboard = getQuietly(client, "keyboardHandler", "keyboard");
+            if (keyboard == null) {
+                return;
+            }
+            long handle = windowHandle(client);
+            if (handle == 0L) {
+                return;
+            }
+            int key = 257; // GLFW_KEY_ENTER
+            for (Method method : keyboard.getClass().getMethods()) {
+                Class<?>[] parameters = method.getParameterTypes();
+                if (parameters.length == 5
+                        && parameters[0] == long.class
+                        && parameters[1] == int.class
+                        && parameters[2] == int.class
+                        && parameters[3] == int.class
+                        && parameters[4] == int.class) {
+                    method.invoke(keyboard, handle, key, 0, 1, 0);
+                    method.invoke(keyboard, handle, key, 0, 0, 0);
+                    log("sent Enter to the title screen");
+                    return;
+                }
+                if (parameters.length == 3
+                        && parameters[0] == long.class
+                        && parameters[1] == int.class
+                        && parameters[2].getSimpleName().equals("KeyEvent")) {
+                    Object event = parameters[2].getConstructor(int.class, int.class, int.class)
+                            .newInstance(key, 0, 0);
+                    method.invoke(keyboard, handle, 1, event);
+                    method.invoke(keyboard, handle, 0, event);
+                    log("sent Enter to the title screen");
+                    return;
+                }
+            }
+        } catch (Throwable t) {
+            log("could not send Enter: " + t);
+        }
+    }
+
+    private static long windowHandle(Object client) {
+        try {
+            Object window = call(client, "getWindow");
+            Object handle = call(window, "handle", "getHandle");
+            if (handle instanceof Number number && number.longValue() != 0L) {
+                return number.longValue();
+            }
+        } catch (Throwable ignored) {
+            // try GLFW next
+        }
+        try {
+            Class<?> glfw = Class.forName("org.lwjgl.glfw.GLFW");
+            Object handle = glfw.getMethod("glfwGetCurrentContext").invoke(null);
+            return handle instanceof Number number ? number.longValue() : 0L;
+        } catch (Throwable t) {
+            return 0L;
+        }
+    }
+
+    private static void stop(Object client) {
+        for (String name : new String[]{"scheduleStop", "stop", "close"}) {
+            try {
+                Method method = client.getClass().getMethod(name);
+                method.invoke(client);
+                log("stop requested via " + name);
+                return;
+            } catch (ReflectiveOperationException ignored) {
+                // try the next method name
+            }
+        }
+        log("no stop method found; exiting");
+        System.exit(0);
+    }
+
+    private void fail(String reason) {
+        if (phase == Phase.ERROR) {
+            return;
+        }
+        phase = Phase.ERROR;
+        ticks = 0;
+        log("ERROR: " + reason);
+        writeStatus("error\n" + reason + "\n");
+        try {
+            setZoomKeyDown(false);
+        } catch (Throwable ignored) {
+            // best effort during shutdown
+        }
+    }
+
+    private void writeStatus(String text) {
+        try {
+            Files.writeString(new File(outputDirectory, "status.txt").toPath(), text, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log("could not write status: " + e);
+        }
+    }
+
+    private static void log(String message) {
+        System.out.println("[autotest] " + message);
+    }
+
+    private static Object get(Object target, String... names) throws Exception {
+        if (target == null) {
+            return null;
+        }
+        Field field = findField(target.getClass(), names);
+        return field == null ? null : field.get(target);
+    }
+
+    private static Object getQuietly(Object target, String... names) {
+        try {
+            return get(target, names);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Object call(Object target, String... names) throws Exception {
+        if (target == null) {
+            return null;
+        }
+        for (String name : names) {
+            Class<?> type = target.getClass();
+            while (type != null) {
+                try {
+                    Method method = type.getDeclaredMethod(name);
+                    method.setAccessible(true);
+                    return method.invoke(target);
+                } catch (NoSuchMethodException ignored) {
+                    type = type.getSuperclass();
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Object callStatic(String className, String name) {
+        try {
+            Method method = Class.forName(className).getMethod(name);
+            return method.invoke(null);
+        } catch (ReflectiveOperationException e) {
+            return "error:" + e.getClass().getSimpleName();
+        }
+    }
+
+    private static Method findMethod(Class<?> type, String name, Class<?>... parameters) {
+        Class<?> current = type;
+        while (current != null) {
+            try {
+                Method method = current.getDeclaredMethod(name, parameters);
+                method.setAccessible(true);
+                return method;
+            } catch (NoSuchMethodException ignored) {
+                current = current.getSuperclass();
+            }
+        }
+        return null;
+    }
+
+    private static Field findField(Class<?> type, String... names) {
+        for (String name : names) {
+            Class<?> current = type;
+            while (current != null) {
+                try {
+                    Field field = current.getDeclaredField(name);
+                    field.setAccessible(true);
+                    return field;
+                } catch (NoSuchFieldException ignored) {
+                    current = current.getSuperclass();
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Keeps the camera pointed at the horizon so the zoom difference is easy to see. */
+    private static final class LevelView {
+        private static void faceForward(Object player) throws Exception {
+            if (player == null) {
+                return;
+            }
+            setFloat(player, 180.0f, "setYaw", "setYRot");
+            setFloat(player, 0.0f, "setPitch", "setXRot");
+        }
+
+        private static void setFloat(Object target, float value, String... names) throws Exception {
+            for (String name : names) {
+                Method method = findMethod(target.getClass(), name, float.class);
+                if (method != null) {
+                    method.invoke(target, value);
+                    return;
+                }
+            }
+        }
+
+        private static String describe(Object player) {
+            if (player == null) {
+                return "player=null";
+            }
+            try {
+                return "x=" + call(player, "getX")
+                        + " y=" + call(player, "getY")
+                        + " z=" + call(player, "getZ")
+                        + " ground=" + call(player, "isOnGround", "onGround");
+            } catch (Exception e) {
+                return "player=" + e;
+            }
+        }
+    }
+}

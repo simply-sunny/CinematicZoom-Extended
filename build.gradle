@@ -169,6 +169,27 @@ subprojects {
 		}
 	}
 
+	if (project.hasProperty('testClient')) {
+		sourceSets.main.java.srcDir rootProject.file('src/testclient/java')
+
+		processResources {
+			doLast {
+				def metaFile = new File(destinationDir, 'fabric.mod.json')
+				def meta = new groovy.json.JsonSlurper().parse(metaFile)
+				def clients = meta.entrypoints.client
+				if (!clients.contains('mix.cinematiczoom.autotest.AutoTestClient')) {
+					clients.add('mix.cinematiczoom.autotest.AutoTestClient')
+				}
+				metaFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(meta))
+			}
+		}
+
+		tasks.named('runClient') {
+			systemProperty 'cinematiczoom.test.target', project.name
+			systemProperty 'cinematiczoom.test.bootstrap', project.hasProperty('bootstrap') ? 'true' : 'false'
+		}
+	}
+
 	processResources {
 		inputs.property 'version', project.version
 		filesMatching('fabric.mod.json') {
