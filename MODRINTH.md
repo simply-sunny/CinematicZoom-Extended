@@ -211,7 +211,7 @@ Extended uses a new mod ID and declares the original mod incompatible, so instal
 
 - Client-side only; servers do not need the mod.
 - **Do not install the original Cinematic Zoom alongside Extended.**
-- Do not combine with other zoom/FOV mods (Zoomify, Ok Zoomer, Logical Zoom, etc.); Extended can import their settings on first launch instead.
+- Do not combine with other zoom/FOV mods (Zoomify, Ok Zoomer, Just Zoom, Logical Zoom, etc.); Extended can import their settings on first launch instead.
 - Sodium, Iris, and shader packs have no known conflicts, but are not specifically tested in 1.0.0; report version-specific issues.
 - OptiFine is not supported.
 - Quilt is not officially tested; use the Fabric build at your own risk.

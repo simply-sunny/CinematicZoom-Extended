@@ -190,7 +190,7 @@ Out-of-range and invalid values are ignored. Enable **Magnetize zoom targets** t
 
 ## Migrating from Cinematic Zoom 1.3
 
-1. Remove `cinematiczoom-*.jar` from `mods`.
+1. Keep only one Cinematic Zoom build in `mods` — Extended replaces the original `cinematiczoom-*.jar`.
 2. Install `cinematiczoom-extended-<minecraft>-1.0.0.jar`.
 3. Keep `config/cinematiczoom.json` — it is migrated automatically.
 
@@ -204,7 +204,7 @@ If you want to start fresh, delete `config/cinematiczoom.json` before launching.
 
 - **Client-side only.** No server component.
 - **Not compatible with the original Cinematic Zoom.** The two mods modify the same camera/FOV behavior, and Extended declares the original as incompatible so the loader shows a clear error instead of double-zooming.
-- **Other zoom mods** (Zoomify, Ok Zoomer, Logical Zoom, etc.) may conflict with FOV handling. Do not install more than one zoom mod; Extended can import their settings on first launch instead.
+- **Other zoom mods** (Zoomify, Ok Zoomer, Just Zoom, Logical Zoom, etc.) may conflict with FOV handling. Do not install more than one zoom mod; Extended can import their settings on first launch instead.
 - **Sodium, Iris, and shader packs** have no known conflicts because the mod only adjusts FOV and renders a HUD overlay. They are not specifically tested in 1.0.0; report issues with exact versions.
 - **OptiFine** is not supported. Use the Fabric-native equivalents.
 - **Quilt** is not officially tested; use the Fabric build at your own risk.
