@@ -68,6 +68,11 @@ public final class ZoomConfig {
 
     public void load() {
         if (!Files.exists(PATH)) {
+            try {
+                ExternalConfigImporter.importInto(this, PATH.getParent());
+            } catch (Exception exception) {
+                LOGGER.warn("Failed to import external zoom configs", exception);
+            }
             save();
             return;
         }

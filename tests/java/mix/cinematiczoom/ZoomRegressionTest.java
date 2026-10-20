@@ -526,6 +526,100 @@ public final class ZoomRegressionTest {
             load("{\"baseZoomMultiplier\":0.2}");
             near(CFG.cinematicStartingZoom, 5.0);
         });
+        run("first run imports Zoomify settings", () -> {
+            Path dir = freshConfigDir();
+            Files.writeString(dir.resolve("zoomify.json"),
+                    "{\"initialZoom\":5,\"zoomInTime\":0.5,\"zoomOutTime\":0.25,"
+                            + "\"zoomInTransition\":\"LINEAR\",\"zoomOutTransition\":\"SINE\","
+                            + "\"zoomKeyBehaviour\":\"TOGGLE\",\"relativeSensitivity\":0,"
+                            + "\"relativeViewBobbing\":true,\"cinematicCamera\":0,"
+                            + "\"scrollZoom\":false,\"secondaryZoomAmount\":6}");
+            CFG.load();
+            near(CFG.cinematicStartingZoom, 5);
+            near(CFG.regularStartingZoom, 6);
+            near(CFG.cinematicZoomInMs, 500);
+            near(CFG.cinematicZoomOutMs, 250);
+            require(CFG.cinematicZoomInCurve == ZoomCurve.LINEAR, "in curve not imported");
+            require(CFG.cinematicZoomOutCurve == ZoomCurve.SINE, "out curve not imported");
+            require(CFG.cinematicToggle && CFG.regularToggle, "toggle mode not imported");
+            require(CFG.cinematicRemoveBobbing, "bobbing not imported");
+            require(!CFG.cinematicScaleSensitivity, "sensitivity not imported");
+            require(!CFG.cinematicCamera && !CFG.regularCinematicCamera, "camera not imported");
+            require(!CFG.mouseWheelEnabled, "scroll zoom not imported");
+            clearExternalConfigs();
+        });
+        run("first run imports Ok Zoomer TOML settings", () -> {
+            Path dir = freshConfigDir();
+            Path okDir = Files.createDirectories(dir.resolve("ok_zoomer"));
+            Files.writeString(okDir.resolve("config.toml"),
+                    "[zoom_transition]\n"
+                            + "start_transition = \"LINEAR\"\n"
+                            + "start_transition_ticks = 6\n"
+                            + "end_transition = \"SINE\"\n"
+                            + "end_transition_ticks = 10\n"
+                            + "\n[appearance]\n"
+                            + "hide_crosshair = false\n"
+                            + "reduce_view_bobbing = true\n"
+                            + "persistent_interface = true\n"
+                            + "\n[controls]\n"
+                            + "reduce_sensitivity = false\n"
+                            + "cinematic_camera = true\n"
+                            + "zoom_mode = \"TOGGLE\"\n"
+                            + "\n[zoom_scrolling]\n"
+                            + "zoom_scrolling = false\n");
+            CFG.load();
+            near(CFG.cinematicZoomInMs, 300);
+            near(CFG.cinematicZoomOutMs, 500);
+            require(CFG.cinematicZoomInCurve == ZoomCurve.LINEAR, "in curve not imported");
+            require(CFG.cinematicZoomOutCurve == ZoomCurve.SINE, "out curve not imported");
+            require(!CFG.cinematicHideCrosshair && !CFG.regularHideCrosshair, "crosshair not imported");
+            require(!CFG.cinematicHideHud && !CFG.regularHideHud, "HUD not imported");
+            require(!CFG.cinematicScaleSensitivity, "sensitivity not imported");
+            require(CFG.cinematicCamera && CFG.regularCinematicCamera, "camera not imported");
+            require(CFG.cinematicToggle && CFG.regularToggle, "toggle not imported");
+            require(!CFG.mouseWheelEnabled, "wheel not imported");
+            clearExternalConfigs();
+        });
+        run("first run imports Just Zoom settings", () -> {
+            Path dir = freshConfigDir();
+            Path justZoom = Files.createDirectories(dir.resolve("justzoom"));
+            Files.writeString(justZoom.resolve("config.json"),
+                    "{\"zoom\":{\"base_zoom_factor\":75,"
+                            + "\"start_zooming_animation_speed\":0.3,"
+                            + "\"stop_zooming_animation_speed\":0.2,"
+                            + "\"smooth_camera_movement_on_zoom\":true,"
+                            + "\"normalize_mouse_sensitivity_on_zoom\":true,"
+                            + "\"hide_arms_when_zooming\":true,"
+                            + "\"show_hud\":\"ALWAYS\"}}");
+            CFG.load();
+            require(CFG.cinematicStartingZoom > 4.4f && CFG.cinematicStartingZoom < 4.7f,
+                    "base zoom not imported, got " + CFG.cinematicStartingZoom);
+            near(CFG.cinematicZoomInMs, 300);
+            near(CFG.cinematicZoomOutMs, 200);
+            require(CFG.cinematicCamera && CFG.regularCinematicCamera, "camera not imported");
+            require(CFG.cinematicScaleSensitivity, "sensitivity not imported");
+            require(CFG.cinematicHideHands && CFG.regularHideHands, "hands not imported");
+            require(!CFG.cinematicHideHud && !CFG.regularHideHud, "HUD not imported");
+            clearExternalConfigs();
+        });
+        run("first run imports any zoom-named config", () -> {
+            Path dir = freshConfigDir();
+            Files.writeString(dir.resolve("logical_zoom.json"),
+                    "{\"zoom\":7,\"hideCrosshair\":false,\"scrollZoom\":false}");
+            CFG.load();
+            near(CFG.cinematicStartingZoom, 7);
+            require(!CFG.cinematicHideCrosshair, "crosshair not imported");
+            require(!CFG.mouseWheelEnabled, "wheel not imported");
+            clearExternalConfigs();
+        });
+        run("existing config is not overwritten by imports", () -> {
+            Path dir = freshConfigDir();
+            Files.writeString(dir.resolve("cinematiczoom.json"), "{\"cinematicStartingZoom\":2}");
+            Files.writeString(dir.resolve("zoomify.json"), "{\"initialZoom\":9}");
+            CFG.load();
+            near(CFG.cinematicStartingZoom, 2);
+            clearExternalConfigs();
+        });
         if (failures != 0) {
             throw new AssertionError(failures + " of " + checks + " regression checks failed");
         }
@@ -594,6 +688,28 @@ public final class ZoomRegressionTest {
         Files.createDirectories(dir);
         Files.writeString(dir.resolve("cinematiczoom.json"), json);
         CFG.load();
+    }
+
+    private static Path freshConfigDir() throws Exception {
+        Path dir = Path.of(System.getProperty("cinematiczoom.testConfig"));
+        Files.createDirectories(dir);
+        clearExternalConfigs();
+        return dir;
+    }
+
+    private static void clearExternalConfigs() throws Exception {
+        Path dir = Path.of(System.getProperty("cinematiczoom.testConfig"));
+        Files.deleteIfExists(dir.resolve("cinematiczoom.json"));
+        Files.deleteIfExists(dir.resolve("zoomify.json"));
+        Files.deleteIfExists(dir.resolve("okzoomer.json"));
+        Files.deleteIfExists(dir.resolve("ok_zoomer.json"));
+        Files.deleteIfExists(dir.resolve("logical_zoom.json"));
+        Path okDir = dir.resolve("ok_zoomer");
+        Files.deleteIfExists(okDir.resolve("config.toml"));
+        Files.deleteIfExists(okDir);
+        Path justZoom = dir.resolve("justzoom");
+        Files.deleteIfExists(justZoom.resolve("config.json"));
+        Files.deleteIfExists(justZoom);
     }
 
     private static void tick() {

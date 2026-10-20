@@ -20,7 +20,7 @@ This file is the source of truth for the Modrinth project settings, version meta
 | Discord | *(none)* |
 | Donation links | *(none)* |
 | Icon | `src/main/resources/assets/cinematiczoom/icon.png` — final 512×512 PNG (velvet stage, spyglass, clapperboard, `++`) |
-| Featured gallery image | 1280×720 screenshot or `<5 MiB` GIF |
+| Featured gallery image | 1280×720 screenshot |
 
 ## Version metadata
 
@@ -46,12 +46,12 @@ Version name format: `Cinematic Zoom Extended 1.0.0 (1.20.1)` or `Cinematic Zoom
 | --- | --- | --- |
 | Fabric API | `P7dR8mSH` | Required |
 | Cloth Config API | `9s6osm5g` | Required |
-| Mod Menu | `mOgUt4GM` | Optional |
+| Mod Menu | `mOgUt4GM` | Required |
 | Cinematic Zoom (Fabric) | `LBKcRJTu` | Incompatible |
 
 ## Gallery plan
 
-Modrinth accepts gallery files up to **5 MiB** each. The current `CinematicZoom.gif` is 23.3 MiB, so compress it (resize to ~960 px wide, 12–15 fps, reduced palette) or use screenshots instead.
+Modrinth accepts gallery files up to **5 MiB** each. Use PNG or JPEG screenshots.
 
 | Order | Asset | Caption |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ Modrinth accepts gallery files up to **5 MiB** each. The current `CinematicZoom.
 | 2 | Screenshot of settings screen | Two independent profiles: Cinematic and Regular |
 | 3 | Ultrawide/snap screenshot | Ultra-wide zoom and snap targets |
 | 4 | HUD comparison | Hide the HUD, crosshair, and hands independently |
-| 5 | Compressed GIF | Smooth per-frame zoom and bar animation |
+| 5 | Cinematic camera screenshot | Smooth per-frame zoom and bar animation |
 
 Alt text should repeat the caption.
 
@@ -81,7 +81,7 @@ The 1.3 release gave you cinematic zoom with bars. Extended turns it into a comp
 - Ultra-wide zoom, discrete wheel stepping, and snap/magnetize targets.
 - Mouse-sensitivity scaling and view-bobbing removal.
 - Independent hiding of the HUD, crosshair, and first-person hands.
-- A config screen in Mod Menu via Cloth Config.
+- A config screen in Mod Menu via Cloth Config (both required).
 
 ## Features
 
@@ -118,6 +118,7 @@ The 1.3 release gave you cinematic zoom with bars. Extended turns it into a comp
 - Client-side only — no server installation.
 - English and Russian translations.
 - Automatic config migration from Cinematic Zoom 1.3.
+- First-run import of settings from Zoomify, Ok Zoomer, Just Zoom, and other zoom-mod configs.
 
 ## Supported versions
 
@@ -138,16 +139,15 @@ The 1.3 release gave you cinematic zoom with bars. Extended turns it into a comp
 - **Fabric Loader** — latest for your Minecraft version.
 - **Fabric API** — matching your Minecraft version.
 - **Cloth Config** — **required**; see the minimum versions above.
-- **Mod Menu** — optional; adds the in-game settings screen.
+- **Mod Menu** — **required**; adds the in-game settings screen.
 - **Java** — 17 for 1.20.1, 21 for 1.21.x, 25 for 26.x.
 
 ## Installation
 
-1. Install Fabric Loader, Fabric API, and Cloth Config for your Minecraft version.
-2. *(Optional)* Install Mod Menu for the in-game settings screen.
-3. Remove any existing `cinematiczoom-*.jar` (the original mod) from your `mods` folder.
-4. Put the matching `cinematiczoom-extended-<minecraft>-1.0.0.jar` in `mods`.
-5. Launch the game.
+1. Install Fabric Loader, Fabric API, Cloth Config, and Mod Menu for your Minecraft version.
+2. Put the matching `cinematiczoom-extended-<minecraft>-1.0.0.jar` in `mods`.
+3. Keep only one Cinematic Zoom build in `mods`: Extended replaces the original, and the two cannot run together.
+4. Launch the game.
 
 ## Usage
 
@@ -176,6 +176,18 @@ Open **Mod Menu → Cinematic Zoom Extended → Settings**, or edit `config/cine
 
 The full option reference, defaults, ranges, and snap-target syntax are in the [GitHub README](https://github.com/simply-sunny/CinematicZoom-Extended#configuration).
 
+### Importing settings from other zoom mods
+
+On first launch, if `cinematiczoom.json` does not exist, Extended scans the `config` folder for zoom-mod configs and imports what it recognizes:
+
+- **Zoomify** — `config/zoomify.json`: zoom amount, in/out times and curves, toggle mode, sensitivity, view bobbing, cinematic camera, scroll zoom, and secondary zoom.
+- **Ok Zoomer** — `config/ok_zoomer/config.toml` or a legacy `okzoomer.json`: transition times and curves, crosshair, view bobbing, sensitivity, cinematic camera, zoom mode, and scroll zoom.
+- **Just Zoom** — `config/justzoom/config.json`: base zoom, animation durations, sensitivity, smooth camera, hands, and HUD visibility.
+- **Any other zoom config** — any JSON or TOML file whose path contains `zoom`, matched by key name.
+- **WI Zoom / Logical Zoom** — store no config file; their zoom is built in, so there is nothing to import.
+
+Existing `cinematiczoom.json` files are never overwritten. To re-run the import, delete `config/cinematiczoom.json` and relaunch.
+
 ### Snap target examples
 
 ```text
@@ -189,7 +201,7 @@ Enable **Magnetize zoom targets** to step strictly between the parsed values wit
 
 ## Migrating from Cinematic Zoom 1.3
 
-1. Remove the old `cinematiczoom-*.jar` from `mods`.
+1. Keep only one Cinematic Zoom build in `mods` — Extended replaces the original `cinematiczoom-*.jar`.
 2. Install the matching Extended JAR.
 3. Keep `config/cinematiczoom.json` — it is migrated automatically.
 
@@ -199,18 +211,19 @@ Extended uses a new mod ID and declares the original mod incompatible, so instal
 
 - Client-side only; servers do not need the mod.
 - **Do not install the original Cinematic Zoom alongside Extended.**
-- Do not combine with other zoom/FOV mods (Zoomify, Ok Zoomer, Logical Zoom, etc.).
+- Do not combine with other zoom/FOV mods (Zoomify, Ok Zoomer, Logical Zoom, etc.); Extended can import their settings on first launch instead.
 - Sodium, Iris, and shader packs have no known conflicts, but are not specifically tested in 1.0.0; report version-specific issues.
 - OptiFine is not supported.
 - Quilt is not officially tested; use the Fabric build at your own risk.
-- Cloth Config is required; Mod Menu is optional.
+- Cloth Config and Mod Menu are required.
 
 ## Troubleshooting
 
 | Problem | Fix |
 | --- | --- |
 | Missing `cloth-config2` | Install Cloth Config for your Minecraft version. |
-| Incompatible with `cinematiczoom` | Remove the original Cinematic Zoom jar. |
+| Missing `modmenu` | Install Mod Menu for your Minecraft version. |
+| Incompatible with `cinematiczoom` | Keep only one Cinematic Zoom jar in `mods`. |
 | Game crashes on launch | Check your Java version: 17 / 21 / 25 depending on Minecraft. |
 | Zoom key does nothing | Bind **Cinematic Zoom** (and **Zoom (no bars)**) under Controls. |
 | Mouse wheel does not zoom | Enable **Mouse wheel during zoom** and hold the zoom key. |

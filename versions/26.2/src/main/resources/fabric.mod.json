@@ -35,12 +35,10 @@
 		"minecraft": ">=26.2 <=26.2.2",
 		"java": ">=25",
 		"fabric-api": "*",
-		"cloth-config2": ">=26.2.155"
+		"cloth-config2": ">=26.2.155",
+		"modmenu": "*"
 	},
 	"breaks": {
 		"cinematiczoom": "*"
-	},
-	"suggests": {
-		"modmenu": "*"
 	}
 }
