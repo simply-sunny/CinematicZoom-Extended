@@ -19,7 +19,7 @@ This file is the source of truth for the Modrinth project settings, version meta
 | Wiki / docs | https://github.com/simply-sunny/CinematicZoom-Extended#configuration |
 | Discord | *(none)* |
 | Donation links | *(none)* |
-| Icon | **Pending logo** — 512×512 PNG, replace `src/main/resources/assets/cinematiczoom/icon.png` before publishing |
+| Icon | `src/main/resources/assets/cinematiczoom/icon.png` — final 512×512 PNG (velvet stage, spyglass, clapperboard, `++`) |
 | Featured gallery image | 1280×720 screenshot or `<5 MiB` GIF |
 
 ## Version metadata
@@ -226,9 +226,12 @@ When reporting an issue, include `logs/latest.log`, your Minecraft version, the 
 - **KubePixel** — original Cinematic Zoom concept and Forge mod.
 - **Mel1x** — upstream Fabric implementation and the 1.3 base.
 - **simply-sunny** — Extended features, tests, and this release.
+- **ColoredChromium** — velvet curtain texture used in the icon ([CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)).
 
-Published with Mel1x's permission: [PR #8](https://github.com/mel1x/CinematicZoom/pull/8#issuecomment-6139411837). Not affiliated with or endorsed by KubePixel or Mel1x.
+Published with Mel1x's permission: [PR #8](https://github.com/mel1x/CinematicZoom/pull/8#issuecomment-6139411837). Not affiliated with or endorsed by KubePixel, Mel1x, Mojang Studios, or Microsoft.
 
 ## License
 
-MIT. Original work copyright © 2025 Melix; changes copyright © 2026 Saunak Karnati (simply-sunny). See the [LICENSE](https://github.com/simply-sunny/CinematicZoom-Extended/blob/main/LICENSE).
+The mod code and original assets are MIT. Original work copyright © 2025 Melix; changes copyright © 2026 Saunak Karnati (simply-sunny). See the [LICENSE](https://github.com/simply-sunny/CinematicZoom-Extended/blob/main/LICENSE).
+
+The project icon incorporates a velvet curtain texture by [ColoredChromium](https://www.deviantart.com/coloredchromium/art/Curtains-Red-Transparency-Light-424984584), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). That texture remains under CC BY 3.0; the icon may be reused under the same terms. Minecraft is a trademark of Mojang Studios.

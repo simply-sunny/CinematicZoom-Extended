@@ -7,6 +7,8 @@
 
 Smooth, cinematic zoom for **Fabric 1.20.1–26.3**, with animated black bars, per-frame easing, two independent zoom profiles, ultra-wide zoom, snap targets, and granular HUD control.
 
+<p align="center"><img src="src/main/resources/assets/cinematiczoom/icon.png" width="160" alt="Cinematic Zoom Extended icon"></p>
+
 > A preview GIF and screenshots will be added with the 1.0.0 release.
 
 ## About this fork
@@ -280,9 +282,12 @@ The headless regression suite runs against the shared zoom/config logic:
 - **KubePixel** — original Cinematic Zoom concept and Forge mod.
 - **Mel1x** — upstream Fabric implementation and the 1.3 base.
 - **simply-sunny** — Extended features, dual profiles, tests, and this release.
+- **ColoredChromium** — velvet curtain texture used in the icon ([CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)).
 
-Published as a separate project with Mel1x's permission ([PR #8](https://github.com/mel1x/CinematicZoom/pull/8#issuecomment-6139411837)). Not affiliated with or endorsed by KubePixel or Mel1x.
+Published as a separate project with Mel1x's permission ([PR #8](https://github.com/mel1x/CinematicZoom/pull/8#issuecomment-6139411837)). Not affiliated with or endorsed by KubePixel, Mel1x, Mojang Studios, or Microsoft.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). The original work is copyright © 2025 Melix; changes are copyright © 2026 Saunak Karnati (simply-sunny).
+The mod code and original assets are MIT — see [LICENSE](LICENSE). The original work is copyright © 2025 Melix; changes are copyright © 2026 Saunak Karnati (simply-sunny).
+
+The project icon incorporates a velvet curtain texture by [ColoredChromium](https://www.deviantart.com/coloredchromium/art/Curtains-Red-Transparency-Light-424984584), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). That texture remains under CC BY 3.0; the icon may be reused under the same terms. Minecraft is a trademark of Mojang Studios.

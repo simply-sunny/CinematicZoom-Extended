@@ -19,6 +19,7 @@ First release of Cinematic Zoom Extended, based on Cinematic Zoom 1.3 by Mel1x.
 - Magnetize/snap targets accepting zoom factors (`2x`) or FOV values (`45fov`, `60°`).
 - Independent hiding of the HUD, crosshair, and first-person hands.
 - Debug (F3) overlay hiding while the HUD is hidden during zoom.
+- New 512×512 Extended icon: velvet curtain stage, Minecraft spyglass, pixel-art clapperboard, and `++` mark.
 - Config migration from Cinematic Zoom 1.3.
 - 35 headless regression checks covering zoom state, config migration, wheel behavior, snapping, bar adjustment, and HUD contracts.
 
