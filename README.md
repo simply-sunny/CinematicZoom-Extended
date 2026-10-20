@@ -1,30 +1,37 @@
-# Cinematic Zoom Extended
+<p align="center"><img src="src/main/resources/assets/cinematiczoom/icon.png" width="128" alt="Cinematic Zoom Extended icon"></p>
 
-[![Modrinth](https://img.shields.io/modrinth/dt/cinematic-zoom-extended?logo=modrinth&label=Modrinth&color=1bd96a)](https://modrinth.com/mod/cinematic-zoom-extended)
-[![GitHub release](https://img.shields.io/github/v/release/simply-sunny/CinematicZoom-Extended?label=release&color=2ea44f)](https://github.com/simply-sunny/CinematicZoom-Extended/releases)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.20.1%E2%80%9326.3-brightgreen)](https://modrinth.com/mod/cinematic-zoom-extended/versions)
+<h1 align="center">Cinematic Zoom Extended</h1>
 
-Smooth, cinematic zoom for **Fabric 1.20.1–26.3**: animated black bars, per-frame easing, two independent zoom profiles, ultra-wide zoom, snap targets, and granular HUD control.
+<p align="center">A smooth, configurable zoom with animated cinema bars.<br>Fabric &nbsp;|&nbsp; 1.20.1 – 26.3</p>
 
-<p align="center"><img src="src/main/resources/assets/cinematiczoom/icon.png" width="160" alt="Cinematic Zoom Extended icon"></p>
+<p align="center">
+<a href="https://modrinth.com/mod/cinematic-zoom-extended"><img src="https://img.shields.io/modrinth/dt/cinematic-zoom-extended?logo=modrinth&label=Modrinth&color=1bd96a" alt="Modrinth downloads"></a>
+<a href="https://github.com/simply-sunny/CinematicZoom-Extended/releases"><img src="https://img.shields.io/github/v/release/simply-sunny/CinematicZoom-Extended?label=release&color=2ea44f" alt="Latest release"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
+</p>
 
-## About this fork
+---
 
-Cinematic Zoom Extended is a fork of [Cinematic Zoom (Fabric)](https://modrinth.com/mod/cinematic-zoom-fabric) by [Mel1x](https://github.com/mel1x), based on the original [Cinematic Zoom](https://www.curseforge.com/minecraft/mc-mods/cinematic-zoom) concept by [KubePixel](https://www.curseforge.com/members/kubepixel/projects).
+Hold a key and the view eases in while black bars slide across the screen, then eases back out when you let go. Cinematic Zoom Extended adds two independent profiles, six easing curves, ultra-wide zoom, snap targets and fine control over what the HUD hides.
 
-It adds separate cinematic and regular profiles, configurable easing and timing, sensitivity scaling, bobbing removal, live bar adjustment, ultra-wide zoom, snap targets, discrete wheel steps, and independent HUD control. Published as a separate project with Mel1x's permission ([PR #8](https://github.com/mel1x/CinematicZoom/pull/8#issuecomment-6139411837)). Not affiliated with or endorsed by KubePixel or Mel1x.
-
-> **Migrating from Cinematic Zoom 1.3?** Keep one build in `mods`; Extended replaces the original, and your `config/cinematiczoom.json` migrates automatically.
+> A fork of [Cinematic Zoom (Fabric)](https://modrinth.com/mod/cinematic-zoom-fabric) by [Mel1x](https://github.com/mel1x), based on the original [Cinematic Zoom](https://www.curseforge.com/minecraft/mc-mods/cinematic-zoom) by [KubePixel](https://www.curseforge.com/members/kubepixel/projects). Published with Mel1x's permission ([PR #8](https://github.com/mel1x/CinematicZoom/pull/8#issuecomment-6139411837)). Not affiliated with or endorsed by either author.
 
 ## Features
 
-- **Two profiles** — Cinematic (bars) and Regular (no bars), each with its own key, zoom, timing, curves, toggle mode, snap targets, and HUD options.
-- **Smooth motion** — per-frame easing with six curves and separate in/out durations.
-- **Framing** — live arrow-key bar adjustment, ultra-wide zoom (0.5×), discrete wheel steps, and snap/magnetize targets (`2x`, `45fov`).
-- **Camera and HUD** — sensitivity scaling, view-bobbing removal, independent HUD/crosshair/hands hiding, and F3 hidden with the HUD.
-- **In-game settings** — Cloth Config screen via Mod Menu, with English and Russian translations.
-- **Migration and import** — 1.3 configs migrate; Zoomify, Ok Zoomer, Just Zoom, and other zoom configs are imported on first launch.
+- **Two profiles.** Cinematic (with bars) and Regular (without), each with its own key, zoom, timing, curves, toggle mode, snap targets and HUD options.
+- **Smooth motion.** Per-frame easing with six curves and separate in and out durations.
+- **Framing.** Adjust the bars live with the arrow keys, zoom out to 0.5x with ultra-wide, step the wheel in fixed increments, and snap to targets like `2x` or `45fov`.
+- **Camera and HUD.** Scale mouse sensitivity, remove view bobbing, and hide the HUD, crosshair and hands independently. F3 hides with the HUD.
+- **Settings screen.** Cloth Config through Mod Menu, in English and Russian.
+- **Easy switching.** Cinematic Zoom 1.3 configs migrate automatically, and Zoomify, Ok Zoomer, Just Zoom and similar mods are imported on first launch.
+
+## Installation
+
+1. Install Fabric Loader, Fabric API, [Cloth Config](https://modrinth.com/mod/cloth-config) and [Mod Menu](https://modrinth.com/mod/modmenu).
+2. Put the jar for your Minecraft version in `mods`.
+3. Remove any other Cinematic Zoom build; only one can be installed.
+
+Client-side only. Servers do not need it.
 
 ## Supported versions
 
@@ -53,13 +60,6 @@ All targets build from `main` and share the same zoom logic.
 | **Java** | 17 for 1.20.1, 21 for 1.21.x, 25 for 26.x. |
 
 Client-side only; servers do not need it.
-
-## Installation
-
-1. Install **Fabric Loader**, **Fabric API**, **Cloth Config**, and **Mod Menu**.
-2. Put the matching `cinematiczoom-extended-<minecraft>-1.0.0.jar` in `mods`.
-3. Keep only one Cinematic Zoom build in `mods`; the two cannot run together.
-4. Launch the game.
 
 ## Usage
 
