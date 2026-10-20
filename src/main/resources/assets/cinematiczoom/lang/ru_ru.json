@@ -4,8 +4,8 @@
   "key.category.cinematiczoom.main": "Кинематографичный зум",
   "key.category.cinematiczoom.cinematiczoom": "Кинематографичный зум",
   
-  "modmenu.descriptionTranslation.cinematiczoom": "Плавный зум с кинематографичными «чёрными полосами» и покадровым сглаживанием.",
-  "modmenu.summaryTranslation.cinematiczoom": "Кинематографичный зум с чёрными полосами.",
+  "modmenu.descriptionTranslation.cinematiczoom_extended": "Расширенная версия Cinematic Zoom: два профиля, настраиваемые кривые, сверхширокий зум, привязка к значениям и гибкое скрытие интерфейса.",
+  "modmenu.summaryTranslation.cinematiczoom_extended": "Расширенный кинематографичный зум с профилями и настройкой кривых.",
 
 
   "cinematiczoom.config.title": "Cinematic Zoom — Настройки",

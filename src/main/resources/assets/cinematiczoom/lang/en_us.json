@@ -7,8 +7,8 @@
   "key.category.cinematiczoom.main": "Cinematic Zoom",
   "key.category.cinematiczoom.cinematiczoom": "Cinematic Zoom",
 
-  "modmenu.descriptionTranslation.cinematiczoom": "Smooth zoom with cinematic black bars and per-frame easing.",
-  "modmenu.summaryTranslation.cinematiczoom": "Cinematic zoom with black bars.",
+  "modmenu.descriptionTranslation.cinematiczoom_extended": "A feature-rich fork of Cinematic Zoom: dual zoom profiles, custom easing, ultra-wide, snap zoom, and granular HUD control.",
+  "modmenu.summaryTranslation.cinematiczoom_extended": "Extended cinematic zoom with profiles, custom easing, and snap zoom.",
 
   "cinematiczoom.config.title": "Cinematic Zoom - Settings",
   "cinematiczoom.config.category.cinematic": "Cinematic Zoom",

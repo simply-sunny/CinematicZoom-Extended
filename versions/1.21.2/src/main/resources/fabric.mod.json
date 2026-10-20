@@ -1,29 +1,44 @@
 {
 	"schemaVersion": 1,
-	"id": "cinematiczoom",
+	"id": "cinematiczoom_extended",
 	"version": "${version}",
-	"name": "CinematicZoom",
-	"description": "Плавный зум с чёрными полосами.",
-	"authors": ["Mel1x"],
+	"name": "Cinematic Zoom Extended",
+	"description": "A feature-rich fork of Cinematic Zoom: dual zoom profiles, custom easing, ultra-wide, snap zoom, and granular HUD control.",
+	"authors": [
+		"simply-sunny",
+		"Mel1x"
+	],
+	"contributors": [
+		"KubePixel"
+	],
 	"contact": {
-		"homepage": "https://modrinth.com/mod/cinematic-zoom-(fabric)",
-		"sources": "https://github.com/mel1x/CinematicZoom",
-		"issues": "https://github.com/mel1x/CinematicZoom/issues"
+		"homepage": "https://modrinth.com/mod/cinematic-zoom-extended",
+		"sources": "https://github.com/simply-sunny/CinematicZoom-Extended",
+		"issues": "https://github.com/simply-sunny/CinematicZoom-Extended/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/cinematiczoom/icon.png",
 	"environment": "client",
 	"entrypoints": {
-		"client": ["mix.cinematiczoom.CinematicZoomClient"],
-		"modmenu": ["mix.cinematiczoom.integrations.ModMenuIntegration"]
+		"client": [
+			"mix.cinematiczoom.CinematicZoomClient"
+		],
+		"modmenu": [
+			"mix.cinematiczoom.integrations.ModMenuIntegration"
+		]
 	},
-	"mixins": ["cinematiczoom.mixins.json"],
+	"mixins": [
+		"cinematiczoom.mixins.json"
+	],
 	"depends": {
 		"fabricloader": ">=0.16.10",
 		"minecraft": ">=1.21.2 <1.21.5",
 		"java": ">=21",
 		"fabric-api": "*",
 		"cloth-config2": ">=16.0.143"
+	},
+	"breaks": {
+		"cinematiczoom": "*"
 	},
 	"suggests": {
 		"modmenu": "*"
