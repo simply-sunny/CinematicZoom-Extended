@@ -10,7 +10,7 @@ This file is the source of truth for the Modrinth project settings, version meta
 | Slug | `cinematic-zoom-extended` |
 | Project type | Mod |
 | Project ID | `nGcifVtU` |
-| Summary | Feature-rich fork of Cinematic Zoom with dual zoom profiles, custom easing, ultra-wide, snap zoom, and granular HUD control. Fabric 1.20.1–26.3, client-side. |
+| Summary | Feature-rich fork of Cinematic Zoom with dual zoom profiles, custom easing, ultra-wide, snap zoom, and granular HUD control. Fabric and Quilt 1.20.1–26.3, client-side. |
 | License | MIT |
 | Environment | Client-side only (`client_only`) |
 | Featured categories | `utility`, `game-mechanics` |
@@ -25,7 +25,7 @@ This file is the source of truth for the Modrinth project settings, version meta
 
 ## Version metadata
 
-Upload one Modrinth version per JAR, all with version number `1.0.0`, channel `release`, loaders `fabric` and `quilt`, and the same changelog. Quilt loads Fabric mods but is untested.
+Upload one Modrinth version per JAR, all with version number `1.0.0`, channel `release`, loaders `fabric` and `quilt`, and the same changelog. Quilt loads Fabric mods and is confirmed to work.
 
 | JAR | Modrinth `game_versions` |
 | --- | --- |
@@ -99,11 +99,11 @@ Hold the zoom key to zoom and release to return, or turn on **Toggle zoom**. Scr
 
 ## Compatibility
 
-- **Minecraft:** 1.20.1 to 26.3 on Fabric. Java 17 for 1.20.1, 21 for 1.21.x, 25 for 26.x.
+- **Minecraft:** 1.20.1 to 26.3 on Fabric and Quilt. Java 17 for 1.20.1, 21 for 1.21.x, 25 for 26.x.
 - **Client-side only.** Servers do not need it.
 - **Other zoom mods** conflict with FOV handling. Import their settings instead of running both.
 - **Sodium, Iris and shaders:** no known conflicts, not specifically tested in 1.0.0.
-- **OptiFine** is unsupported and **Quilt** is untested.
+- **Quilt** is supported (it runs the Fabric jar with Fabric API). **OptiFine** is unsupported.
 
 Full configuration, import and troubleshooting notes are on [GitHub](https://github.com/simply-sunny/CinematicZoom-Extended#readme).
 

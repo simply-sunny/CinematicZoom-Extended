@@ -2,7 +2,7 @@
 
 <h1 align="center">Cinematic Zoom Extended</h1>
 
-<p align="center">A smooth, configurable zoom with animated cinema bars.<br>Fabric &nbsp;|&nbsp; 1.20.1 – 26.3</p>
+<p align="center">A smooth, configurable zoom with animated cinema bars.<br>Fabric &amp; Quilt &nbsp;|&nbsp; 1.20.1 – 26.3</p>
 
 <p align="center">
 <a href="https://modrinth.com/mod/cinematic-zoom-extended"><img src="https://img.shields.io/modrinth/dt/cinematic-zoom-extended?logo=modrinth&label=Modrinth&color=1bd96a" alt="Modrinth downloads"></a>
@@ -29,7 +29,7 @@ Hold a key and the view eases in while black bars slide across the screen, then 
 
 Client-side only; servers do not need it.
 
-1. Install [Fabric Loader](https://fabricmc.net/use/), [Fabric API](https://modrinth.com/mod/fabric-api), [Cloth Config](https://modrinth.com/mod/cloth-config) and [Mod Menu](https://modrinth.com/mod/modmenu) for your Minecraft version. Cloth Config and Mod Menu are required.
+1. Install [Fabric Loader](https://fabricmc.net/use/) (or Quilt Loader), [Fabric API](https://modrinth.com/mod/fabric-api), [Cloth Config](https://modrinth.com/mod/cloth-config) and [Mod Menu](https://modrinth.com/mod/modmenu) for your Minecraft version. Cloth Config and Mod Menu are required.
 2. Put the jar for your Minecraft version in `mods`.
 3. Remove any other Cinematic Zoom build; only one can be installed.
 
@@ -100,7 +100,7 @@ Extended replaces the original `cinematiczoom-*.jar`, so remove that jar and ins
 - **Original Cinematic Zoom:** not compatible; only one build can be installed.
 - **Other zoom mods:** they may conflict with FOV handling. Don't run them together; import their settings instead.
 - **Sodium, Iris and shaders:** no known conflicts, but not specifically tested in 1.0.0.
-- **Quilt:** untested. **OptiFine:** unsupported.
+- **Quilt:** supported. Quilt Loader runs the Fabric jars, with Fabric API installed as on Fabric. **OptiFine:** unsupported.
 
 ## Troubleshooting
 
