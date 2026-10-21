@@ -27,39 +27,25 @@ Hold a key and the view eases in while black bars slide across the screen, then 
 
 ## Installation
 
-1. Install Fabric Loader, Fabric API, [Cloth Config](https://modrinth.com/mod/cloth-config) and [Mod Menu](https://modrinth.com/mod/modmenu).
+Client-side only; servers do not need it.
+
+1. Install [Fabric Loader](https://fabricmc.net/use/), [Fabric API](https://modrinth.com/mod/fabric-api), [Cloth Config](https://modrinth.com/mod/cloth-config) and [Mod Menu](https://modrinth.com/mod/modmenu) for your Minecraft version. Cloth Config and Mod Menu are required.
 2. Put the jar for your Minecraft version in `mods`.
 3. Remove any other Cinematic Zoom build; only one can be installed.
 
-Client-side only. Servers do not need it.
-
-## Supported versions
-
-| Minecraft | Build target | Java | Cloth Config |
+| Minecraft | Jar | Java | Cloth Config |
 | --- | --- | --- | --- |
 | 1.20.1 | `1.20.1` | 17+ | 11.1.136+ |
 | 1.21.1 | `1.21.1` | 21+ | 15.0.140+ |
-| 1.21.2–1.21.4 | `1.21.2` | 21+ | 16.0.143+ |
-| 1.21.5–1.21.6 | `1.21.5` | 21+ | 18.0.145+ |
-| 1.21.7–1.21.8 | `1.21.7` | 21+ | 19.0.147+ |
-| 1.21.9–1.21.11 | `1.21.11` | 21+ | 20.0.149+ |
+| 1.21.2–1.21.4 | `1.21.2-1.21.4` | 21+ | 16.0.143+ |
+| 1.21.5–1.21.6 | `1.21.5-1.21.6` | 21+ | 18.0.145+ |
+| 1.21.7–1.21.8 | `1.21.7-1.21.8` | 21+ | 19.0.147+ |
+| 1.21.9–1.21.11 | `1.21.9-1.21.11` | 21+ | 20.0.149+ |
 | 26.1–26.1.2 | `26.1` | 25+ | 26.1.154+ |
 | 26.2–26.2.2 | `26.2` | 25+ | 26.2.155+ |
 | 26.3 | `26.3` | 25+ | 26.3.159+ |
 
-All targets build from `main` and share the same zoom logic.
-
-## Requirements
-
-| Requirement | Notes |
-| --- | --- |
-| **Fabric Loader** | Latest for your Minecraft version. |
-| **Fabric API** | Matching your Minecraft version. |
-| **Cloth Config** | **Required.** See the minimums above. |
-| **Mod Menu** | **Required.** Adds the settings screen. |
-| **Java** | 17 for 1.20.1, 21 for 1.21.x, 25 for 26.x. |
-
-Client-side only; servers do not need it.
+Jars are named `cinematiczoom-extended-<jar>-<version>.jar`.
 
 ## Usage
 
@@ -81,50 +67,40 @@ All keys are rebindable under **Options → Controls → Key Binds → Cinematic
 
 Open **Mod Menu → Cinematic Zoom Extended → Settings**. Every setting is there, including both profiles, curves, timings, HUD hiding, snap targets, and wheel behavior.
 
-The settings screen writes to `config/cinematiczoom.json`:
+Settings are saved to `config/cinematiczoom.json` in your Minecraft folder:
 
 - **Windows:** `%appdata%\.minecraft\config\cinematiczoom.json`
 - **macOS:** `~/Library/Application Support/minecraft/config/cinematiczoom.json`
 - **Linux:** `~/.minecraft/config/cinematiczoom.json`
 
-Advanced JSON-only keys:
+Delete the file to reset to defaults. Two keys exist only in the JSON; edit them if needed, then restart:
 
 | Key | Default | Notes |
 | --- | --- | --- |
 | `wheelStep` | `0.05` | Continuous wheel sensitivity, 0.01–0.25. |
 | `minZoomMultiplier` | `0.0333` (1/30) | Lower allows more zoom; maximum factor is `1 / value`. |
 
-Edit those only if needed, then restart. Delete the file to reset to defaults.
+### Coming from another zoom mod
 
-### Importing from other zoom mods
+If `config/cinematiczoom.json` is missing, Extended imports what it recognizes on first launch:
 
-If `cinematiczoom.json` is missing, Extended imports what it recognizes on first launch:
+- **Zoomify:** `config/zoomify.json`
+- **Ok Zoomer:** `config/ok_zoomer/config.toml` or legacy `okzoomer.json`
+- **Just Zoom:** `config/justzoom/config.json`
+- **Other zoom mods:** any JSON or TOML file with `zoom` in its path, matched by key name.
 
-- **Zoomify** — `config/zoomify.json`
-- **Ok Zoomer** — `config/ok_zoomer/config.toml` or legacy `okzoomer.json`
-- **Just Zoom** — `config/justzoom/config.json`
-- **Other zoom mods** — any JSON/TOML file with `zoom` in its path, matched by key name.
+WI Zoom and Logical Zoom keep no config file. An existing `cinematiczoom.json` is never overwritten; delete it and relaunch to re-import.
 
-WI Zoom and Logical Zoom keep no config file. Existing `cinematiczoom.json` is never overwritten; delete it and relaunch to re-import.
+### Migrating from Cinematic Zoom 1.3
 
-## Migrating from Cinematic Zoom 1.3
-
-1. Keep only one Cinematic Zoom build in `mods` — Extended replaces the original `cinematiczoom-*.jar`.
-2. Install `cinematiczoom-extended-<minecraft>-1.0.0.jar`.
-3. Leave `config/cinematiczoom.json` in place; legacy keys migrate on first launch.
-
-Extended uses a new mod ID but keeps the same config filename. Migrated keys: `startingZoom`, `baseZoomMultiplier`, `barsPercent`, `smoothMs`, `hideHudDuringZoom`, `enableCinematicCamera`, `toggleMode`, `minZoomMultiplier`.
-
-To start fresh, delete the file and relaunch.
+Extended replaces the original `cinematiczoom-*.jar`, so remove that jar and install the Extended one. Extended uses a new mod ID but keeps the same config filename, so leave `config/cinematiczoom.json` in place and these legacy keys migrate on first launch: `startingZoom`, `baseZoomMultiplier`, `barsPercent`, `smoothMs`, `hideHudDuringZoom`, `enableCinematicCamera`, `toggleMode`, `minZoomMultiplier`. To start fresh, delete the file and relaunch.
 
 ## Compatibility
 
-- **Client-side only.** No server component.
-- **Not compatible with the original Cinematic Zoom.** Only one build can be installed.
-- **Other zoom mods** may conflict with FOV handling. Don't run them together; import their settings instead.
-- **Sodium, Iris, and shaders** have no known conflicts, but are not specifically tested in 1.0.0.
-- **OptiFine** is unsupported; **Quilt** is untested.
-- **Cloth Config and Mod Menu** are required.
+- **Original Cinematic Zoom:** not compatible; only one build can be installed.
+- **Other zoom mods:** they may conflict with FOV handling. Don't run them together; import their settings instead.
+- **Sodium, Iris and shaders:** no known conflicts, but not specifically tested in 1.0.0.
+- **Quilt:** untested. **OptiFine:** unsupported.
 
 ## Troubleshooting
 
@@ -144,13 +120,13 @@ Logs are in `.minecraft/logs/latest.log`. Include the log and your Minecraft, mo
 
 ## Building from source
 
-Requires **JDK 25** (1.20.1 compiles with `--release 17`, 1.21.x with 21, 26.x with 25).
+Requires **JDK 25**; 1.20.1 compiles with `--release 17` and 1.21.x with 21.
 
 ```bash
 ./gradlew clean test buildAll
 ```
 
-This builds all nine targets and runs the 40-check regression suite. JARs land in `build/libs/`. Build one target with:
+This runs the headless regression suite and builds every target. Jars land in `build/libs/`. To build one target:
 
 ```bash
 ./gradlew :1.21.7:build
