@@ -9,10 +9,11 @@ This file is the source of truth for the Modrinth project settings, version meta
 | Title | **Cinematic Zoom Extended** |
 | Slug | `cinematic-zoom-extended` |
 | Project type | Mod |
+| Project ID | `nGcifVtU` |
 | Summary | Feature-rich fork of Cinematic Zoom with dual zoom profiles, custom easing, ultra-wide, snap zoom, and granular HUD control. Fabric 1.20.1–26.3, client-side. |
 | License | MIT |
 | Environment | Client-side only (`client_only`) |
-| Featured categories | `fabric`, `utility`, `game-mechanics` |
+| Featured categories | `utility`, `game-mechanics` |
 | Additional categories | `decoration` |
 | Source | https://github.com/simply-sunny/CinematicZoom-Extended |
 | Issues | https://github.com/simply-sunny/CinematicZoom-Extended/issues |
@@ -24,7 +25,7 @@ This file is the source of truth for the Modrinth project settings, version meta
 
 ## Version metadata
 
-Upload one Modrinth version per JAR, all with version number `1.0.0`, channel `release`, loader `fabric`, and the same changelog.
+Upload one Modrinth version per JAR, all with version number `1.0.0`, channel `release`, loaders `fabric` and `quilt`, and the same changelog. Quilt loads Fabric mods but is untested.
 
 | JAR | Modrinth `game_versions` |
 | --- | --- |
