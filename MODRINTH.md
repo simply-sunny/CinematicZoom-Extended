@@ -77,7 +77,7 @@ A fork of [Cinematic Zoom (Fabric)](https://modrinth.com/mod/cinematic-zoom-fabr
 - **Smooth motion.** Per-frame easing with six curves and separate in and out durations.
 - **Framing.** Adjust the bars live with the arrow keys, zoom out to 0.5x with ultra-wide, step the wheel in fixed increments, and snap to targets like `2x` or `45fov`.
 - **Camera and HUD.** Scale mouse sensitivity, remove view bobbing, and hide the HUD, crosshair and hands independently. F3 hides with the HUD.
-- **Settings screen.** Cloth Config through Mod Menu, in English and Russian.
+- **Settings screen.** Cloth Config through Mod Menu,.
 - **Easy switching.** Cinematic Zoom 1.3 configs migrate automatically, and Zoomify, Ok Zoomer, Just Zoom and similar mods are imported on first launch.
 
 ## Installation
