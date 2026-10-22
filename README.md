@@ -2,7 +2,7 @@
 
 <h1 align="center">Cinematic Zoom Extended</h1>
 
-<p align="center">A smooth, configurable zoom with animated cinema bars.<br>Fabric &amp; Quilt &nbsp;|&nbsp; 1.20.1 – 26.3</p>
+<p align="center">A configurable zoom with animated cinema bars.<br>Fabric &amp; Quilt &nbsp;|&nbsp; 1.20.1 – 26.3</p>
 
 <p align="center">
 <a href="https://modrinth.com/mod/cinematic-zoom-extended"><img src="https://img.shields.io/modrinth/dt/cinematic-zoom-extended?logo=modrinth&label=Modrinth&color=1bd96a" alt="Modrinth downloads"></a>
@@ -12,26 +12,17 @@
 
 ---
 
-Hold a key and the view eases in while black bars slide across the screen, then eases back out when you let go. Cinematic Zoom Extended adds two independent profiles, six easing curves, ultra-wide zoom, snap targets and fine control over what the HUD hides.
+Hold a key and the view eases in while black bars slide across the screen. Release the key and it eases back out. Two independent profiles, six easing curves, ultra-wide zoom, and snap targets like `2x` or `45fov`. It also scales mouse sensitivity, removes view bobbing, and hides the HUD, crosshair, and hands independently.
 
 > A fork of [Cinematic Zoom (Fabric)](https://modrinth.com/mod/cinematic-zoom-fabric) by [Mel1x](https://github.com/mel1x), based on the original [Cinematic Zoom](https://www.curseforge.com/minecraft/mc-mods/cinematic-zoom) by [KubePixel](https://www.curseforge.com/members/kubepixel/projects). Published with Mel1x's permission ([PR #8](https://github.com/mel1x/CinematicZoom/pull/8#issuecomment-6139411837)). Not affiliated with or endorsed by either author.
 
-## Features
+## Install
 
-- **Two profiles.** Cinematic (with bars) and Regular (without), each with its own key, zoom, timing, curves, toggle mode, snap targets and HUD options.
-- **Smooth motion.** Per-frame easing with six curves and separate in and out durations.
-- **Framing.** Adjust the bars live with the arrow keys, zoom out to 0.5x with ultra-wide, step the wheel in fixed increments, and snap to targets like `2x` or `45fov`.
-- **Camera and HUD.** Scale mouse sensitivity, remove view bobbing, and hide the HUD, crosshair and hands independently. F3 hides with the HUD.
-- **Settings screen.** Cloth Config through Mod Menu,.
-- **Easy switching.** Cinematic Zoom 1.3 configs migrate automatically, and Zoomify, Ok Zoomer, Just Zoom and similar mods are imported on first launch.
+Client-side only. Servers don't need it.
 
-## Installation
-
-Client-side only; servers do not need it.
-
-1. Install [Fabric Loader](https://fabricmc.net/use/) (or Quilt Loader), [Fabric API](https://modrinth.com/mod/fabric-api), [Cloth Config](https://modrinth.com/mod/cloth-config) and [Mod Menu](https://modrinth.com/mod/modmenu) for your Minecraft version. Cloth Config and Mod Menu are required.
+1. Install [Fabric Loader](https://fabricmc.net/use/) (or Quilt Loader), [Fabric API](https://modrinth.com/mod/fabric-api), [Cloth Config](https://modrinth.com/mod/cloth-config), and [Mod Menu](https://modrinth.com/mod/modmenu) for your Minecraft version. Cloth Config and Mod Menu are required.
 2. Put the jar for your Minecraft version in `mods`.
-3. Remove any other Cinematic Zoom build; only one can be installed.
+3. Remove any other Cinematic Zoom build. Only one can be installed.
 
 | Minecraft | Jar | Java | Cloth Config |
 | --- | --- | --- | --- |
@@ -47,23 +38,23 @@ Client-side only; servers do not need it.
 
 Jars are named `cinematiczoom-extended-<jar>-<version>.jar`.
 
-## Usage
+## Use
 
 | Action | Default key |
 | --- | --- |
 | Cinematic Zoom (hold or toggle) | `C` |
-| Zoom without bars | Unbound — bind it in Controls |
+| Zoom without bars | Unbound. Bind it in Controls. |
 | Increase bar size | `↑` |
 | Decrease bar size | `↓` |
 
 All keys are rebindable under **Options → Controls → Key Binds → Cinematic Zoom**.
 
-- Hold the zoom key to zoom in; release to return smoothly. Enable **Toggle zoom** to press once on and once off.
-- Use the mouse wheel while zooming to adjust magnification.
+- Hold the zoom key to zoom in. Release it to return. Enable **Toggle zoom** to press once to turn it on and once to turn it off.
+- Use the mouse wheel while zooming to change magnification.
 - With **Ultra-wide zoom** enabled, scroll back past 1× to reach 0.5×.
 - Zoom and overlays are disabled while a GUI screen is open.
 
-## Configuration
+## Configure
 
 Open **Mod Menu → Cinematic Zoom Extended → Settings**. Every setting is there, including both profiles, curves, timings, HUD hiding, snap targets, and wheel behavior.
 
@@ -73,12 +64,12 @@ Settings are saved to `config/cinematiczoom.json` in your Minecraft folder:
 - **macOS:** `~/Library/Application Support/minecraft/config/cinematiczoom.json`
 - **Linux:** `~/.minecraft/config/cinematiczoom.json`
 
-Delete the file to reset to defaults. Two keys exist only in the JSON; edit them if needed, then restart:
+Delete the file to reset to defaults. Two keys exist only in the JSON. Edit them, then restart:
 
 | Key | Default | Notes |
 | --- | --- | --- |
-| `wheelStep` | `0.05` | Continuous wheel sensitivity, 0.01–0.25. |
-| `minZoomMultiplier` | `0.0333` (1/30) | Lower allows more zoom; maximum factor is `1 / value`. |
+| `wheelStep` | `0.05` | Wheel sensitivity, 0.01–0.25. |
+| `minZoomMultiplier` | `0.0333` (1/30) | Lower allows more zoom. The maximum factor is `1 / value`. |
 
 ### Coming from another zoom mod
 
@@ -89,38 +80,15 @@ If `config/cinematiczoom.json` is missing, Extended imports what it recognizes o
 - **Just Zoom:** `config/justzoom/config.json`
 - **Other zoom mods:** any JSON or TOML file with `zoom` in its path, matched by key name.
 
-WI Zoom and Logical Zoom keep no config file. An existing `cinematiczoom.json` is never overwritten; delete it and relaunch to re-import.
+WI Zoom and Logical Zoom keep no config file. An existing `cinematiczoom.json` is never overwritten. Delete it and relaunch to re-import.
 
 ### Migrating from Cinematic Zoom 1.3
 
-Extended replaces the original `cinematiczoom-*.jar`, so remove that jar and install the Extended one. Extended uses a new mod ID but keeps the same config filename, so leave `config/cinematiczoom.json` in place and these legacy keys migrate on first launch: `startingZoom`, `baseZoomMultiplier`, `barsPercent`, `smoothMs`, `hideHudDuringZoom`, `enableCinematicCamera`, `toggleMode`, `minZoomMultiplier`. To start fresh, delete the file and relaunch.
+Extended replaces the original `cinematiczoom-*.jar`. Remove that jar and install the Extended one. Extended has a new mod ID but keeps the config filename, so leave `config/cinematiczoom.json` in place. These legacy keys migrate on first launch: `startingZoom`, `baseZoomMultiplier`, `barsPercent`, `smoothMs`, `hideHudDuringZoom`, `enableCinematicCamera`, `toggleMode`, `minZoomMultiplier`. To start fresh, delete the file and relaunch.
 
-## Compatibility
+## Develop
 
-- **Original Cinematic Zoom:** not compatible; only one build can be installed.
-- **Other zoom mods:** they may conflict with FOV handling. Don't run them together; import their settings instead.
-- **Sodium, Iris and shaders:** no known conflicts, but not specifically tested in 1.0.0.
-- **Quilt:** supported. Quilt Loader runs the Fabric jars, with Fabric API installed as on Fabric. **OptiFine:** unsupported.
-
-## Troubleshooting
-
-| Problem | Fix |
-| --- | --- |
-| `requires cloth-config2` | Install Cloth Config for your Minecraft version. |
-| `requires modmenu` | Install Mod Menu for your Minecraft version. |
-| `incompatible with cinematiczoom` | Keep only one Cinematic Zoom jar in `mods`. |
-| Crash on launch | Check Java: 17 / 21 / 25 depending on Minecraft. |
-| Settings screen missing | Install both Mod Menu and Cloth Config. |
-| Zoom key does nothing | Bind **Cinematic Zoom** under Controls. |
-| Wheel does not zoom | Enable **Mouse wheel during zoom** and hold the zoom key. |
-| Bars do not appear | Use the cinematic key and set the bar height above 0. |
-| Broken config | Delete `config/cinematiczoom.json` and relaunch. |
-
-Logs are in `.minecraft/logs/latest.log`. Include the log and your Minecraft, mod, and loader versions when reporting an issue.
-
-## Building from source
-
-Requires **JDK 25**; 1.20.1 compiles with `--release 17` and 1.21.x with 21.
+Requires JDK 25. 1.20.1 compiles with `--release 17`, and 1.21.x with 21.
 
 ```bash
 ./gradlew clean test buildAll
@@ -132,15 +100,34 @@ This runs the headless regression suite and builds every target. Jars land in `b
 ./gradlew :1.21.7:build
 ```
 
-## Credits
+## Troubleshooting
 
-- **KubePixel** — original Cinematic Zoom concept and Forge mod.
-- **Mel1x** — upstream Fabric implementation and the 1.3 base.
-- **simply-sunny** — Extended features, profiles, tests, and release.
-- **ColoredChromium** — velvet curtain texture used in the icon ([CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)).
+| Problem | Fix |
+| --- | --- |
+| `requires cloth-config2` | Install Cloth Config for your Minecraft version. |
+| `requires modmenu` | Install Mod Menu for your Minecraft version. |
+| `incompatible with cinematiczoom` | Keep only one Cinematic Zoom jar in `mods`. |
+| Crash on launch | Check Java: 17, 21, or 25, depending on Minecraft. |
+| Settings screen missing | Install both Mod Menu and Cloth Config. |
+| Zoom key does nothing | Bind **Cinematic Zoom** under Controls. |
+| Wheel does not zoom | Enable **Mouse wheel during zoom** and hold the zoom key. |
+| Bars do not appear | Use the cinematic key and set the bar height above 0. |
+| Broken config | Delete `config/cinematiczoom.json` and relaunch. |
+
+Logs are in `.minecraft/logs/latest.log`. Include the log and your Minecraft, mod, and loader versions when you report an issue.
+
+## Limits
+
+- **Original Cinematic Zoom:** not compatible. Only one build can be installed.
+- **Other zoom mods:** may conflict with FOV handling. Don't run them together. Import their settings instead.
+- **Sodium, Iris, and shaders:** no known conflicts, but not specifically tested in 1.0.0.
+- **Quilt:** supported. Quilt Loader runs the Fabric jars, with Fabric API installed as on Fabric.
+- **OptiFine:** unsupported.
 
 ## License
 
-The mod code and original assets are MIT — see [LICENSE](LICENSE). Original work copyright © 2025 Melix; changes copyright © 2026 Saunak Karnati (simply-sunny).
+MIT, see [LICENSE](LICENSE). Original work copyright © 2025 Melix. Changes copyright © 2026 Saunak Karnati (simply-sunny).
 
-The icon uses a velvet curtain texture by [ColoredChromium](https://www.deviantart.com/coloredchromium/art/Curtains-Red-Transparency-Light-424984584), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). That texture remains CC BY 3.0. Minecraft is a trademark of Mojang Studios.
+Credits: KubePixel (original concept and Forge mod), Mel1x (upstream Fabric implementation and the 1.3 base), simply-sunny (Extended features, profiles, tests, and releases).
+
+The icon uses a velvet curtain texture by [ColoredChromium](https://www.deviantart.com/coloredchromium/art/Curtains-Red-Transparency-Light-424984584), licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). Minecraft is a trademark of Mojang Studios.
